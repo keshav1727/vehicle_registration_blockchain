@@ -1,0 +1,57 @@
+specVersion: 0.0.4
+description: VehicleRegistrationToken
+features:
+    - ipfsOnEthereumContracts
+schema:
+    file: ./schema.graphql
+dataSources:
+    - kind: ethereum/contract
+      name: VehicleRegistrationToken
+      network: ganache
+      source:
+          address: "0x476059cD57800DB8eB88f67c2Aa38A6fCf8251e0"
+          abi: VehicleRegistrationToken
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - Token
+              - Transfer
+              - Owner
+          abis:
+              - name: VehicleRegistrationToken
+                file: ./abis/VehicleRegistrationToken.abi
+          eventHandlers:
+              - event: Transfer(indexed address,indexed address,indexed uint256)
+                handler: handleTransfer
+              - event: VehicleTokenCreated(indexed uint256,address,string)
+                handler: handleTokenCreation
+              - event: VehicleCertificationCreated(indexed uint256,uint256,uint256,address,string)
+                handler: handleCertificationCreation
+              - event: VehicleCertificationCanceled(indexed uint256,uint256,address)
+                handler: handleCertificationCancelation
+          file: ./mapping.ts
+    - kind: ethereum/contract
+      name: VehicleMarketplace
+      network: ganache
+      source:
+          address: "0x7Da893FAf70cE5f4CEEF42A6e526Ae62b3DC02F5"
+          abi: VehicleMarket
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - SaleTicket
+          abis:
+              - name: VehicleMarket
+                file: ./abis/VehicleMarketplace.abi
+          eventHandlers:
+              - event: OnSale(indexed uint256,address,address,uint256,uint256)
+                handler: handleOnSale
+              - event: Sold(indexed uint256,address,address,uint256,uint256)
+                handler: handleOnSold
+              - event: Cancel(indexed uint256,address,uint256)
+                handler: handleOnCancel
+          file: ./mapping.ts

@@ -1,0 +1,43 @@
+type Certification @entity {
+    id: ID!
+    code: Int!
+    uri: String!
+    createdBy: Bytes!
+    metadata: String
+    timestamp: BigInt!
+    txHash: Bytes!
+}
+
+type Token @entity {
+    id: ID!
+    uri: String!
+    mintedBy: Bytes!
+    currentOwner: Bytes!
+    metadata: String
+    certifications: [Certification!]!
+    transfers: [Transfer!]!
+    isOnSale: Boolean!
+}
+
+type Transfer @entity {
+    id: ID!
+    from: Bytes!
+    to: Bytes!
+    timestamp: BigInt!
+    txHash: Bytes!
+}
+
+enum SaleTicketStatus {
+    PENDING
+    CANCELLED
+    COMPLETED
+}
+
+type SaleTicket @entity {
+    id: ID!
+    token: Token!
+    price: BigInt!
+    seller: Bytes!
+    status: SaleTicketStatus!
+    timestamp: BigInt!
+}

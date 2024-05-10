@@ -1,0 +1,40 @@
+{
+    "name": "vrt-core",
+    "version": "0.0.3",
+    "description": "Core Smart Contracts for Vehicle Registration Token Project, a protocol for trace vehicle's property and their history in Ethereum blockchain.",
+    "author": {
+        "name": "Andrea Antonutti",
+        "email": "dev.andrea.antonutti@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/1M4nt0/vrt-core"
+    },
+    "keywords": [
+        "blockchain",
+        "vehicles"
+    ],
+    "license": "MIT",
+    "scripts": {
+        "build-contract-abi": "docker run --rm -v %cd%/:/src ethereum/solc:stable --abi --include-path /src/node_modules/ -o /src/abis --base-path . /src/contracts/VehicleMarketplace.sol --overwrite && docker run --rm -v %cd%/:/src ethereum/solc:stable --abi --include-path /src/node_modules/ -o /src/abis --base-path . /src/contracts/VehicleRegistrationToken.sol --overwrite",
+        "create-graph": "graph create vrtproject --node https://api.thegraph.com/deploy/",
+        "create-local-graph": "graph create vrtproject --node http://127.0.0.1:8020",
+        "codegen": "graph codegen",
+        "build-graph": "graph build",
+        "deploy-graph": "graph deploy vrtproject --ipfs https://api.thegraph.com/ipfs/ --node http://127.0.0.1:8020",
+        "deploy-local-graph": "graph deploy vrtproject --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020"
+    },
+    "dependencies": {
+        "@graphprotocol/graph-ts": "^0.27.0",
+        "@openzeppelin/contracts": "^4.5.0",
+        "axios": "^1.6.8",
+        "dotenv": "^16.4.5",
+        "ethereumjs-util": "^7.1.4",
+        "ethers": "^5.6.2"
+    },
+    "devDependencies": {
+        "@truffle/hdwallet-provider": "^1.7.0",
+        "ethereum-abi-types-generator": "^1.3.2",
+        "truffle-flattener": "^1.2.11"
+    }
+}

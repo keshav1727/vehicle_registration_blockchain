@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  ganache:
+    image: trufflesuite/ganache:v7.4.3
+    container_name: ganache
+    restart: always
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./data/ganache:/ganache_data
+    entrypoint:
+      - node
+      - /app/dist/node/cli.js
+      - --database.dbPath
+      - /ganache_data
+      - --wallet.mnemonic
+      - "minimum symptom minute gloom tragic situate silver mechanic salad amused elite beef"
+      - --chain.networkId
+      - "5777"
+      - --server.host
+      - "0.0.0.0"
+      - --logging.debug
+    networks:
+      - vrt-project-network
+
+  graph-node:
+    image: graphprotocol/graph-node:v0.27.0
+    container_name: 'graph-node'
+    restart: always
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
+      - "8030:8030"
+      - "8040:8040"
+    depends_on:
+      - ipfs
+      - postgres
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      postgres_host: host.docker.internal
+      postgres_port: '7432'
+      postgres_user: postgres
+      postgres_pass: ''
+      postgres_db: graph-node
+      ipfs: "ipfs:5001"
+      ethereum: "ganache:http://host.docker.internal:8545"
+      GRAPH_LOG: info
+      GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: true                  #Allow extra feature of auto fetching data from IPFS
+    networks:
+      - vrt-project-network
+
+  ipfs:
+      image: ipfs/kubo:release
+      restart: always
+      container_name: 'ipfs'
+      ports:
+        - "4001:4001"
+        - "5001:5001"
+        - "8080:8080"
+      volumes:
+        - ./data/ipfs:/data/ipfs
+      networks:
+      - vrt-project-network
+
+  postgres:
+    image: postgres:14
+    restart: always
+    container_name: 'postgres'
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: ''
+      POSTGRES_HOST_AUTH_METHOD: 'trust'
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
+    ports:
+      - "7432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./scripts/init_databases.sql:/docker-entrypoint-initdb.d/init_databases.sql
+    networks:
+      - vrt-project-network
+
+  blockscout:
+    depends_on:
+      - postgres
+    image: blockscout/blockscout:4.1.8
+    restart: always
+    container_name: 'blockscout'
+    links:
+      - postgres:database
+    command: bash -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
+    environment:
+        ETHEREUM_JSONRPC_VARIANT: 'ganache'
+        ETHEREUM_JSONRPC_HTTP_URL: http://host.docker.internal:8545/
+        ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
+        INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: 'true'
+        DATABASE_URL: postgresql://postgres:@host.docker.internal:7432/blockscout?ssl=false
+        ECTO_USE_SSL: 'false'
+        SECRET_KEY_BASE: '56NtB48ear7+wMSf0IQuWDAAazhpb31qyc7GiyspBP2vh7t5zlCsF5QDv76chXeN'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    env_file:
+      -  ./envs/common-blockscout.env
+    ports:
+      - "4000:4000"
+    networks:
+      - vrt-project-network
+
+networks:
+  vrt-project-network:
+    name: vrtproject
+    driver: bridge

@@ -1,0 +1,39 @@
+FROM node:16-alpine
+RUN mkdir -p /app
+WORKDIR /app
+COPY package.json package-lock.json /app/
+RUN npm install
+
+ARG DOMAIN
+ARG NETWORK_ID
+ARG CHAIN_ID
+ARG TESTNET_RPC
+ARG TESTNET_EXPLORER_URL
+ARG IPFS_GATEWAY_URL
+ARG GRAPH_QUERY_BASE_URL
+ARG SUBGRAPH_NAME
+ARG IPFS_API_URL
+
+ENV NEXT_PUBLIC_LOCAL_DOMAIN $DOMAIN
+ENV NEXT_PUBLIC_NETWORK_ID $NETWORK_ID
+ENV NEXT_PUBLIC_TARGET_CHAIN_ID $CHAIN_ID
+ENV NEXT_PUBLIC_TESTNET_RPC $TESTNET_RPC
+ENV NEXT_PUBLIC_TESTNET_EXPLORER_URL $TESTNET_EXPLORER_URL
+ENV NEXT_PUBLIC_IPFS_GATEWAY_URL $IPFS_GATEWAY_URL
+ENV NEXT_PUBLIC_GRAPH_QUERY_BASE_URL $GRAPH_QUERY_BASE_URL
+ENV NEXT_PUBLIC_SUBGRAPH_NAME $SUBGRAPH_NAME
+ENV NEXT_PUBLIC_IPFS_API_URL $IPFS_API_URL
+
+COPY .eslintrc.json /app/.eslintrc.json
+COPY next-env.d.ts /app/next-env.d.ts
+COPY next.config.js /app/next.config.js
+COPY postcss.config.js /app/postcss.config.js
+COPY tailwind.config.js /app/tailwind.config.js
+COPY tsconfig.json /app/tsconfig.json
+COPY /public ./public/
+RUN mkdir -p ./public/contracts
+COPY node_modules/vrt-core/artifacts/ ./public/contracts/
+
+EXPOSE 3000
+
+CMD ["npm","run","dev"]
